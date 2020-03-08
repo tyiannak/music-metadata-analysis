@@ -3,9 +3,8 @@ import spotipy
 import json
 import simplejson
 import sys
-import io
 import time
-import os
+import csv
 import pylast
 
 with open('credentials.json') as json_file:
@@ -23,7 +22,7 @@ client_credentials_manager = SpotifyClientCredentials(client_id=
                                                       SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-SLEEP_TIME = 10
+SLEEP_TIME = 5
 
 def readjson(fileName):
     with open (fileName, "r") as myfile:
@@ -33,7 +32,8 @@ def readjson(fileName):
 
 
 def get_metadata(artistName, trackName):
-    metadata = {}    
+    metadata = {"artist": artistName,
+                "track": trackName}
 
     results = sp.search(q='artist:' + artistName + ' track:'+trackName)
     songs = results['tracks']['items']
@@ -89,3 +89,16 @@ if __name__ == '__main__':
         song = sys.argv[3]
         metadata = get_metadata(artist, song)
         print(metadata)
+    if sys.argv[1] == "multi":
+        csv_file = sys.argv[2]
+        # this must be a csv file of the form: id, track name, artist name
+        with open(csv_file) as f:
+            reader = csv.reader(f)
+            data = list(reader)
+        metadata = {}
+        for r in data[::1000]:
+            print(r[0], r[1], r[2])
+            metadata[r[0]] = get_metadata(r[1], r[2])
+            print(metadata[r[0]])
+            with open('output.json', 'w') as outfile:
+                json.dump(metadata, outfile)
