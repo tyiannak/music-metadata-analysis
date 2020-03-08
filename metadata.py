@@ -23,8 +23,7 @@ client_credentials_manager = SpotifyClientCredentials(client_id=
                                                       SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-SLEEP_TIME = 10;
-
+SLEEP_TIME = 10
 
 def readjson(fileName):
     with open (fileName, "r") as myfile:
@@ -33,7 +32,7 @@ def readjson(fileName):
     return jdata
 
 
-def metadataGet(artistName, trackName, albumName):
+def get_metadata(artistName, trackName):
     metadata = {}    
 
     results = sp.search(q='artist:' + artistName + ' track:'+trackName)
@@ -44,28 +43,26 @@ def metadataGet(artistName, trackName, albumName):
 
     if n_songs_found>0:  # if at least one song is found
         # A. Get spotify metadata:
-        spSong = songs[0]  # get first song        
-        spAlbumID = spSong["album"]["id"]
-        spAlbumName = spSong["album"]["name"]
-        sp_song_name = spSong["name"]
-        spArtistName = spSong["artists"][0]["name"]
+        sp_song = songs[0]  # get first song
+        sp_album_name = sp_song["album"]["name"]
+        sp_song_name = sp_song["name"]
+        sp_artist_name = sp_song["artists"][0]["name"]
+        sp_song_id = sp_song["id"]
         metadata["spotify-trackName"] = sp_song_name
-        metadata["spotify-albumName"] = spAlbumName
-        metadata["spotify-artistName"] = spArtistName
-        spSongID = spSong["id"]
-        
-        try:
-            # spotify features
-            spFeatures = sp.audio_features([spSongID])
+        metadata["spotify-albumName"] = sp_album_name
+        metadata["spotify-artistName"] = sp_artist_name
+        # get spotify features
+        try: 
+            sp_feat = sp.audio_features([sp_song_id])
         except simplejson.scanner.JSONDecodeError:
-            spFeatures = []
+            sp_feat = []
 
-        if len(spFeatures)>0:
-            spFeatures = spFeatures[0]  # get 1st spotify feature
-        if spFeatures is not None:
-            for sN in spFeatures:
+        if len(sp_feat)>0:
+            sp_feat = sp_feat[0]  # get 1st spotify feature
+        if sp_feat is not None:
+            for sN in sp_feat:
                 if sN not in ["track_href","type","uri","id","analysis_url"]:
-                    metadata["spotify-"+sN] = spFeatures[sN]
+                    metadata["spotify-"+sN] = sp_feat[sN]
     else:
         print("Spotify: NO")
     T2 = time.time()
@@ -87,9 +84,8 @@ def metadataGet(artistName, trackName, albumName):
     return metadata
 
 if __name__ == '__main__':
-    if sys.argv[1] == "search":
+    if sys.argv[1] == "single":
         artist = sys.argv[2]
         song = sys.argv[3]
-        album = sys.argv[4]        
-        metadata = metadataGet(artist, song, album)
+        metadata = get_metadata(artist, song)
         print(metadata)
