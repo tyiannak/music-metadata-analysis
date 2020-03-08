@@ -101,4 +101,4 @@ if __name__ == '__main__':
             metadata[r[0]] = get_metadata(r[1], r[2])
             print(metadata[r[0]])
             with open('output.json', 'w') as outfile:
-                json.dump(metadata, outfile)
+                json.dump(metadata, outfile, indent=4)
