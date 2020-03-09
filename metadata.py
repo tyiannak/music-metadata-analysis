@@ -7,22 +7,32 @@ import time
 import csv
 import pylast
 
-with open('credentials.json') as json_file:
-    CRED = json.load(json_file)
+global network
+global sp
 
-LAST_FM_KEY = CRED["last-fm"]["LAST_FM_KEY"]
-LAST_FM_SECRET = CRED["last-fm"]["LAST_FM_SECRET"]
-network = pylast.LastFMNetwork(api_key=LAST_FM_KEY, api_secret=LAST_FM_SECRET)
+SLEEP_TIME = 10
 
-SPOTIPY_CLIENT_ID = CRED["spotify"]["SPOTIPY_CLIENT_ID"]
-SPOTIPY_CLIENT_SECRET = CRED["spotify"]["SPOTIPY_CLIENT_SECRET"]
-client_credentials_manager = SpotifyClientCredentials(client_id=
-                                                      SPOTIPY_CLIENT_ID,
-                                                      client_secret=
-                                                      SPOTIPY_CLIENT_SECRET)
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-SLEEP_TIME = 25
+def get_credentials(cred_path):
+    with open(cred_path) as json_file:
+        CRED = json.load(json_file)
+
+    LAST_FM_KEY = CRED["last-fm"]["LAST_FM_KEY"]
+    LAST_FM_SECRET = CRED["last-fm"]["LAST_FM_SECRET"]
+    global network
+    network = pylast.LastFMNetwork(api_key=LAST_FM_KEY,
+                                   api_secret=LAST_FM_SECRET)
+
+    SPOTIPY_CLIENT_ID = CRED["spotify"]["SPOTIPY_CLIENT_ID"]
+    SPOTIPY_CLIENT_SECRET = CRED["spotify"]["SPOTIPY_CLIENT_SECRET"]
+    client_credentials_manager = SpotifyClientCredentials(client_id=
+                                                          SPOTIPY_CLIENT_ID,
+                                                          client_secret=
+                                                          SPOTIPY_CLIENT_SECRET)
+    global sp
+    sp = spotipy.Spotify(client_credentials_manager=
+                         client_credentials_manager)
+
 
 def readjson(fileName):
     with open (fileName, "r") as myfile:
@@ -35,8 +45,12 @@ def get_metadata(artistName, trackName):
     metadata = {"artist": artistName,
                 "track": trackName}
 
-    results = sp.search(q='artist:' + artistName + ' track:'+trackName)
-    songs = results['tracks']['items']
+    try:
+        results = sp.search(q='artist:' + artistName + ' track:'+trackName)
+        songs = results['tracks']['items']
+    except:
+        songs = []
+
     n_songs_found = len(songs)
 
     T1 = time.time()
@@ -90,20 +104,28 @@ def get_metadata(artistName, trackName):
 
 if __name__ == '__main__':
     if sys.argv[1] == "single":
+        get_credentials("credentials.json")
         artist = sys.argv[2]
         song = sys.argv[3]
         metadata = get_metadata(artist, song)
         print(metadata)
     if sys.argv[1] == "multi":
         csv_file = sys.argv[2]
+        cred_file = sys.argv[3]
+        get_credentials(cred_file)
+        start = int(sys.argv[4])
+        end = int(sys.argv[5])
+        output = (sys.argv[6])
         # this must be a csv file of the form: id, track name, artist name
         with open(csv_file) as f:
             reader = csv.reader(f)
             data = list(reader)
         metadata = {}
-        for r in data[:1000]:
+        if end > len(data):
+            end = len(data)
+        for r in data[start:end]:
             print(r[0], r[1], r[2])
             metadata[r[0]] = get_metadata(r[1], r[2])
             print(metadata[r[0]])
-            with open('output.json', 'w') as outfile:
+            with open(output, 'w') as outfile:
                 json.dump(metadata, outfile, indent=4)
