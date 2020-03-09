@@ -53,7 +53,9 @@ def get_metadata(artistName, trackName):
         metadata["spotify-artistName"] = sp_artist_name
         metadata["spotify-popularity"] = sp_song["popularity"]
         metadata["spotify-date"] = sp_song["album"]["release_date"]
-        metadata["spotify-count_countries"] = len(sp_song["album"]["available_markets"])
+        metadata["spotify-count_countries"] = len(sp_song["available_markets"])
+        metadata["spotify-track_no"] = sp_song["track_number"]
+        metadata["spotify-num_of_tracks_in_album"] = sp_song["album"]["total_tracks"]
         # get spotify features
         try: 
             sp_feat = sp.audio_features([sp_song_id])
