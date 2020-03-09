@@ -101,7 +101,7 @@ if __name__ == '__main__':
             reader = csv.reader(f)
             data = list(reader)
         metadata = {}
-        for r in data[::1000]:
+        for r in data[:1000]:
             print(r[0], r[1], r[2])
             metadata[r[0]] = get_metadata(r[1], r[2])
             print(metadata[r[0]])
