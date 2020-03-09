@@ -22,7 +22,7 @@ client_credentials_manager = SpotifyClientCredentials(client_id=
                                                       SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-SLEEP_TIME = 5
+SLEEP_TIME = 25
 
 def readjson(fileName):
     with open (fileName, "r") as myfile:
@@ -51,6 +51,9 @@ def get_metadata(artistName, trackName):
         metadata["spotify-trackName"] = sp_song_name
         metadata["spotify-albumName"] = sp_album_name
         metadata["spotify-artistName"] = sp_artist_name
+        metadata["spotify-popularity"] = sp_song["popularity"]
+        metadata["spotify-date"] = sp_song["album"]["release_date"]
+        metadata["spotify-count_countries"] = len(sp_song["album"]["available_markets"])
         # get spotify features
         try: 
             sp_feat = sp.audio_features([sp_song_id])
