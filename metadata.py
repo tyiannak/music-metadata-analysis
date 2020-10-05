@@ -102,6 +102,7 @@ def get_metadata(artistName, trackName):
         time.sleep(SLEEP_TIME)
     return metadata
 
+
 if __name__ == '__main__':
     if sys.argv[1] == "single":
         get_credentials("credentials.json")
