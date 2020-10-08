@@ -82,6 +82,18 @@ def get_metadata(artistName, trackName):
             for sN in sp_feat:
                 if sN not in ["track_href","type","uri","id","analysis_url"]:
                     metadata["spotify-"+sN] = sp_feat[sN]
+
+        # get genres
+        maxSpGenres = 5
+        spArtistGenres = sp.artist(sp_song["artists"][0]["id"])["genres"]
+        if spArtistGenres is not None:
+            for ig in range(maxSpGenres):
+                if ig >= len(spArtistGenres):
+                    metadata["spotify-genre" + "%.2d" % (ig + 1)] = ""
+                else:
+                    metadata["spotify-genre" + "%.2d" % (ig + 1)] = \
+                    spArtistGenres[ig]
+
     else:
         print("Spotify: NO")
     T2 = time.time()
@@ -121,12 +133,12 @@ if __name__ == '__main__':
         with open(csv_file) as f:
             reader = csv.reader(f)
             data = list(reader)
-        metadata = {}
+        metadata = []
         if end > len(data):
             end = len(data)
         for r in data[start:end]:
             print(r[0], r[1], r[2])
-            metadata[r[0]] = get_metadata(r[1], r[2])
-            print(metadata[r[0]])
+            metadata.append(get_metadata(r[1], r[2]))
+            print(metadata[-1])
             with open(output, 'w') as outfile:
                 json.dump(metadata, outfile, indent=4)
