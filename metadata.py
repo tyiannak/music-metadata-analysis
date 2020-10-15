@@ -50,8 +50,25 @@ def get_metadata(artistName, trackName):
         songs = results['tracks']['items']
     except:
         songs = []
-
     n_songs_found = len(songs)
+
+    if n_songs_found == 0:
+        artistName = artistName.split('(')[0]
+        artistName = artistName.split('[')[0]
+        artistName = artistName.split('&')[0]
+        artistName = artistName.split('\'')[0]
+        trackName = trackName.split('(')[0]
+        trackName = trackName.split('[')[0]
+        trackName = trackName.split('&')[0]
+        trackName = trackName.split('\'')[0]
+        artistName = artistName.rstrip()
+        trackName = trackName.rstrip()
+        try:
+            results = sp.search(q='artist:' + artistName + ' track:'+trackName)
+            songs = results['tracks']['items']
+        except:
+            songs = []
+        n_songs_found = len(songs)
 
     T1 = time.time()
 
@@ -104,8 +121,23 @@ def get_metadata(artistName, trackName):
         metadata["lastfm-listener-count"] = lf_track.get_listener_count()
         metadata["lastfm-play-count"] = lf_track.get_playcount()
     except:
-        print("Last-fm: NO")
-
+        # try once more by removing special characters:
+        artistName = artistName.split('(')[0]
+        artistName = artistName.split('[')[0]
+        artistName = artistName.split('&')[0]
+        artistName = artistName.split('\'')[0]
+        trackName = trackName.split('(')[0]
+        trackName = trackName.split('[')[0]
+        trackName = trackName.split('&')[0]
+        trackName = trackName.split('\'')[0]
+        artistName = artistName.rstrip()
+        trackName = trackName.rstrip()
+        lf_track = network.get_track(artistName, trackName)
+        try:
+            metadata["lastfm-listener-count"] = lf_track.get_listener_count()
+            metadata["lastfm-play-count"] = lf_track.get_playcount()
+        except:
+            print("LastFM: NO")
     T3 = time.time()
 
     timeToSleep = SLEEP_TIME - (T3-T1)
